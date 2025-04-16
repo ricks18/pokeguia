@@ -14,6 +14,7 @@ const TypeDetailScreen = ({ route, navigation }) => {
 
   useEffect(() => {
     loadTypeDetails();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [typeId]);
 
   // Função para carregar detalhes do tipo

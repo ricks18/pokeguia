@@ -19,21 +19,6 @@ export const PokemonProvider = ({ children }) => {
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
 
-  // Carregar tipos de Pokémon ao iniciar
-  useEffect(() => {
-    loadTypes();
-  }, []);
-
-  // Carregar lista inicial de Pokémon
-  useEffect(() => {
-    loadPokemonList();
-  }, []);
-
-  // Carregar favoritos do armazenamento local
-  useEffect(() => {
-    loadFavorites();
-  }, []);
-
   // Função para carregar tipos de Pokémon
   const loadTypes = async () => {
     try {
@@ -87,6 +72,33 @@ export const PokemonProvider = ({ children }) => {
     }
   };
 
+  // Função para carregar favoritos do armazenamento local
+  const loadFavorites = async () => {
+    try {
+      // Implementar lógica de armazenamento local (AsyncStorage)
+      // Por enquanto, apenas inicializa vazio
+      setFavorites([]);
+    } catch (err) {
+      console.error('Erro ao carregar favoritos:', err);
+    }
+  };
+
+  // Carregar tipos de Pokémon ao iniciar
+  useEffect(() => {
+    loadTypes();
+  }, []);
+
+  // Carregar lista inicial de Pokémon
+  useEffect(() => {
+    loadPokemonList();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Carregar favoritos do armazenamento local
+  useEffect(() => {
+    loadFavorites();
+  }, []);
+
   // Função para buscar Pokémon por nome
   const searchPokemon = async (searchTerm) => {
     if (!searchTerm || searchTerm.trim() === '') {
@@ -111,17 +123,6 @@ export const PokemonProvider = ({ children }) => {
       setError('Não foi possível buscar o Pokémon');
     } finally {
       setLoading(false);
-    }
-  };
-
-  // Função para carregar favoritos do armazenamento local
-  const loadFavorites = async () => {
-    try {
-      // Implementar lógica de armazenamento local (AsyncStorage)
-      // Por enquanto, apenas inicializa vazio
-      setFavorites([]);
-    } catch (err) {
-      console.error('Erro ao carregar favoritos:', err);
     }
   };
 

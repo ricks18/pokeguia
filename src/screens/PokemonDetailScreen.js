@@ -28,6 +28,7 @@ const PokemonDetailScreen = ({ route, navigation }) => {
   // Carregar dados do Pokémon quando a tela for montada
   useEffect(() => {
     loadPokemonData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   // Função para carregar dados do Pokémon
