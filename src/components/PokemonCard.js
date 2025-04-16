@@ -1,12 +1,28 @@
-import React from 'react';
-import { StyleSheet, View, Text, Image, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, View, Text, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { formatPokemonId, capitalize, getTypeColor } from '../utils/helpers';
 
+/**
+ * Componente de card para exibir informações básicas de um Pokémon
+ * 
+ * @param {Object} pokemon - Dados do Pokémon a ser exibido
+ * @param {Function} onPress - Função a ser chamada ao clicar no card
+ */
 const PokemonCard = ({ pokemon, onPress }) => {
+  const [imageLoading, setImageLoading] = useState(true);
+  const [imageError, setImageError] = useState(false);
+
   // Determina a cor de fundo do card com base no primeiro tipo do Pokémon
   const backgroundColor = pokemon.tipos && pokemon.tipos.length > 0
     ? `${getTypeColor(pokemon.tipos[0])}33` // Adiciona transparência à cor
     : '#f5f5f5';
+
+  // Função para tratar erros de carregamento da imagem
+  const handleImageError = () => {
+    console.log(`Erro ao carregar imagem do Pokémon #${pokemon.id}`);
+    setImageLoading(false);
+    setImageError(true);
+  };
 
   return (
     <TouchableOpacity 
@@ -14,9 +30,36 @@ const PokemonCard = ({ pokemon, onPress }) => {
       activeOpacity={0.7}
       onPress={() => onPress(pokemon.id)}
     >
-      <View style={styles.infoContainer}>
+      <View style={styles.cardContent}>
         <Text style={styles.id}>{formatPokemonId(pokemon.id)}</Text>
-        <Text style={styles.name}>{capitalize(pokemon.nome)}</Text>
+        
+        <View style={styles.imageContainer}>
+          {imageLoading && (
+            <ActivityIndicator 
+              size="small" 
+              color={pokemon.tipos && pokemon.tipos.length > 0 ? getTypeColor(pokemon.tipos[0]) : '#666'}
+              style={styles.loader}
+            />
+          )}
+          
+          {pokemon.img && !imageError ? (
+            <Image 
+              source={{ uri: pokemon.img }} 
+              style={[styles.image, imageLoading ? { opacity: 0 } : { opacity: 1 }]} 
+              resizeMode="contain"
+              onLoad={() => setImageLoading(false)}
+              onError={handleImageError}
+            />
+          ) : (
+            <View style={styles.placeholderImage}>
+              <Text style={styles.placeholderText}>?</Text>
+            </View>
+          )}
+        </View>
+        
+        <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail">
+          {capitalize(pokemon.nome)}
+        </Text>
         
         <View style={styles.typesContainer}>
           {pokemon.tipos && pokemon.tipos.map((tipo, index) => (
@@ -29,86 +72,80 @@ const PokemonCard = ({ pokemon, onPress }) => {
           ))}
         </View>
       </View>
-      
-      <View style={styles.imageContainer}>
-        {pokemon.img ? (
-          <Image 
-            source={{ uri: pokemon.img }} 
-            style={styles.image} 
-            resizeMode="contain"
-          />
-        ) : (
-          <View style={styles.placeholderImage}>
-            <Text style={styles.placeholderText}>?</Text>
-          </View>
-        )}
-      </View>
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   card: {
+    flex: 1,
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    margin: 8,
-    padding: 16,
-    flexDirection: 'row',
+    margin: 6,
+    padding: 12,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
     borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.05)',
+    maxWidth: '47%',
   },
-  infoContainer: {
-    flex: 1,
-    justifyContent: 'center',
+  cardContent: {
+    alignItems: 'center',
   },
   id: {
-    fontSize: 14,
+    fontSize: 12,
     color: 'rgba(0,0,0,0.6)',
     marginBottom: 4,
     fontWeight: '600',
+    alignSelf: 'flex-start',
   },
   name: {
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 8,
+    marginVertical: 8,
     color: '#333',
+    textAlign: 'center',
+    width: '100%',
   },
   typesContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    justifyContent: 'center',
   },
   typeTag: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
     borderRadius: 20,
-    marginRight: 8,
-    marginBottom: 4,
+    margin: 3,
   },
   typeText: {
     color: 'white',
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: 'bold',
   },
   imageContainer: {
-    width: 100,
-    height: 100,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 8,
-  },
-  image: {
-    width: 100,
-    height: 100,
-  },
-  placeholderImage: {
     width: 80,
     height: 80,
-    borderRadius: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  image: {
+    width: 80,
+    height: 80,
+  },
+  loader: {
+    position: 'absolute',
+    top: 30,
+    left: 30,
+  },
+  placeholderImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     backgroundColor: 'rgba(0,0,0,0.1)',
     justifyContent: 'center',
     alignItems: 'center',

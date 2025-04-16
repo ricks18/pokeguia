@@ -1,188 +1,95 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, ActivityIndicator } from 'react-native';
-import { getPokemonDetails } from '../services/pokeApi';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { SCREENS } from '../navigation/types';
+import React from 'react';
+import { View, Text, Image, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { capitalize, formatPokemonId } from '../utils/helpers';
+import { ROUTES } from '../navigation/types';
 
 /**
  * Componente para exibir a cadeia evolutiva de um Pokémon
  * 
- * @param {Object} props - Propriedades do componente
- * @param {Array} props.evolutionChain - Lista de objetos contendo dados de cada evolução
- * @param {Object} props.navigation - Objeto de navegação para ir para outros Pokémon
- * @returns {React.Component} Componente de cadeia evolutiva
+ * @param {Object} props
+ * @param {Array} props.evolutionChain - Array de objetos da cadeia evolutiva processada
+ * @param {Object} props.navigation - Objeto de navegação
  */
 const PokemonEvolution = ({ evolutionChain, navigation }) => {
-  const [pokemonData, setPokemonData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  if (!evolutionChain || evolutionChain.length === 0) {
+    return (
+      <View style={styles.emptyContainer}>
+        <Text style={styles.emptyText}>Informações de evolução não disponíveis</Text>
+      </View>
+    );
+  }
 
-  useEffect(() => {
-    // Validação dos dados de entrada
-    if (!Array.isArray(evolutionChain)) {
-      setError('Formato de dados inválido');
-      setLoading(false);
-      return;
-    }
-    
-    const loadEvolutionData = async () => {
-      if (!evolutionChain || evolutionChain.length === 0) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        setLoading(true);
-        setError(null);
-        
-        // Verificar se cada item da cadeia tem a propriedade necessária
-        const hasValidFormat = evolutionChain.every(item => 
-          item && typeof item.species_name === 'string'
-        );
-        
-        if (!hasValidFormat) {
-          setError('Dados de evolução em formato inválido');
-          setLoading(false);
-          return;
-        }
-        
-        const pokemonPromises = evolutionChain.map(async (evolution) => {
-          try {
-            const details = await getPokemonDetails(evolution.species_name);
-            return {
-              ...details,
-              trigger: evolution.trigger,
-              min_level: evolution.min_level,
-              item: evolution.item
-            };
-          } catch (err) {
-            // Retornamos um objeto com dados básicos para não quebrar a renderização
-            return {
-              id: evolution.species_id || 0,
-              nome: evolution.species_name,
-              img: null,
-              error: true,
-              trigger: evolution.trigger,
-              min_level: evolution.min_level,
-              item: evolution.item
-            };
-          }
-        });
-
-        const results = await Promise.all(pokemonPromises);
-        setPokemonData(results.filter(p => p !== null));
-      } catch (err) {
-        setError('Falha ao carregar detalhes da evolução');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadEvolutionData();
-  }, [evolutionChain]);
-
-  const handlePokemonPress = (id) => {
-    navigation.push(SCREENS.POKEMON_DETAIL, { id });
+  // Função para navegar para a tela de detalhes de um Pokémon
+  const navigateToPokemon = (id) => {
+    console.log(`Navegando para Pokémon #${id} a partir da cadeia evolutiva`);
+    navigation.navigate(ROUTES.POKEDEX, {
+      screen: 'PokemonDetail',
+      params: { id }
+    });
   };
 
-  // Função para gerar texto de evolução com base no trigger e detalhes
-  const getEvolutionDetails = (pokemon, index) => {
-    if (index === 0) return null; // Primeiro Pokémon na cadeia não tem detalhes de evolução
-
-    const { trigger, min_level, item } = pokemon;
-
-    if (!trigger) return 'Evolui';
-
-    let detailText = '';
-
-    switch (trigger) {
-      case 'level-up':
-        detailText = min_level ? `Nível ${min_level}` : 'Subir de nível';
-        break;
-      case 'use-item':
-        detailText = item ? `Usar ${formatItemName(item)}` : 'Usar item';
-        break;
-      case 'trade':
-        detailText = 'Trocar';
-        break;
-      default:
-        detailText = 'Evolui';
-    }
-
-    return detailText;
-  };
-
-  // Formatar nome do item
+  // Função para formatar o nome do item
   const formatItemName = (itemName) => {
     if (!itemName) return '';
-    
-    // Substituir hífens por espaços e capitalizar cada palavra
-    return itemName
-      .split('-')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
+    return itemName.split('-').map(capitalize).join(' ');
   };
 
-  if (loading) {
+  // Função para renderizar o detalhe da evolução
+  const renderEvolutionDetails = (pokemon, nextPokemon) => {
+    if (!nextPokemon) return null;
+
+    let evolutionMethod = '';
+
+    if (nextPokemon.min_level) {
+      evolutionMethod = `Nível ${nextPokemon.min_level}`;
+    } else if (nextPokemon.item) {
+      evolutionMethod = `${formatItemName(nextPokemon.item)}`;
+    } else if (nextPokemon.trigger === 'trade') {
+      evolutionMethod = 'Troca';
+    } else if (nextPokemon.trigger === 'use-item') {
+      evolutionMethod = `Item: ${formatItemName(nextPokemon.item) || '???'}`;
+    } else if (nextPokemon.trigger === 'level-up') {
+      evolutionMethod = 'Subir de Nível';
+    } else if (nextPokemon.trigger === 'shed') {
+      evolutionMethod = 'Evolução Especial';
+    } else {
+      evolutionMethod = 'Evolução';
+    }
+
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="small" color="#3B4CCA" />
-        <Text style={styles.loadingText}>Carregando evoluções...</Text>
+      <View style={styles.evolutionDetails}>
+        <Ionicons name="arrow-forward" size={20} color="#666" />
+        <Text style={styles.evolutionMethod}>{evolutionMethod}</Text>
       </View>
     );
-  }
+  };
 
-  if (error) {
-    return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>{error}</Text>
-      </View>
-    );
-  }
-
-  if (!pokemonData || pokemonData.length === 0) {
-    return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>Nenhuma evolução encontrada</Text>
-      </View>
-    );
-  }
-
+  // Renderizar cada fase da evolução
   return (
     <View style={styles.container}>
-      {pokemonData.map((pokemon, index) => (
-        <React.Fragment key={pokemon.id || index}>
-          {index > 0 && (
-            <View style={styles.evolutionDetailsContainer}>
-              <Icon name="arrow-right" size={24} color="#666" />
-              <View style={styles.evolutionInfo}>
-                <Text style={styles.evolutionMethod}>
-                  {getEvolutionDetails(pokemon, index)}
-                </Text>
-              </View>
-            </View>
-          )}
+      {evolutionChain.map((pokemon, index) => (
+        <View key={pokemon.species_id} style={styles.evolutionRow}>
           <TouchableOpacity
             style={styles.pokemonContainer}
-            onPress={() => handlePokemonPress(pokemon.id)}
+            onPress={() => navigateToPokemon(pokemon.species_id)}
           >
-            <View style={styles.imageWrapper}>
-              {pokemon.img ? (
-                <Image
-                  source={{ uri: pokemon.img }}
-                  style={styles.pokemonImage}
-                />
-              ) : (
-                <View style={styles.noImageContainer}>
-                  <Icon name="image-off" size={30} color="#CCC" />
-                </View>
-              )}
+            <View style={styles.imageContainer}>
+              <Image
+                source={{ 
+                  uri: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemon.species_id}.png` 
+                }}
+                style={styles.pokemonImage}
+                resizeMode="contain"
+              />
             </View>
-            <Text style={styles.pokemonName}>
-              {pokemon.nome.charAt(0).toUpperCase() + pokemon.nome.slice(1)}
-            </Text>
+            <Text style={styles.pokemonId}>{formatPokemonId(pokemon.species_id)}</Text>
+            <Text style={styles.pokemonName}>{capitalize(pokemon.species_name)}</Text>
           </TouchableOpacity>
-        </React.Fragment>
+
+          {/* Mostrar método de evolução entre Pokémon */}
+          {index < evolutionChain.length - 1 && renderEvolutionDetails(pokemon, evolutionChain[index + 1])}
+        </View>
       ))}
     </View>
   );
@@ -190,20 +97,21 @@ const PokemonEvolution = ({ evolutionChain, navigation }) => {
 
 const styles = StyleSheet.create({
   container: {
+    padding: 10,
+  },
+  evolutionRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    flexWrap: 'wrap',
+    marginBottom: 15,
   },
   pokemonContainer: {
     alignItems: 'center',
-    margin: 5,
-    padding: 10,
-    backgroundColor: '#f1f1f1',
+    backgroundColor: '#F5F5F5',
     borderRadius: 10,
-    width: 100,
+    padding: 10,
+    width: 120,
   },
-  imageWrapper: {
+  imageContainer: {
     width: 80,
     height: 80,
     justifyContent: 'center',
@@ -212,56 +120,44 @@ const styles = StyleSheet.create({
   pokemonImage: {
     width: 70,
     height: 70,
-    resizeMode: 'contain',
   },
-  noImageContainer: {
-    width: 70,
-    height: 70,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#e0e0e0',
-    borderRadius: 35,
+  pokemonId: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 5,
   },
   pokemonName: {
-    marginTop: 5,
-    fontSize: 12,
-    textAlign: 'center',
+    fontSize: 14,
+    fontWeight: 'bold',
     color: '#333',
+    marginTop: 3,
+    textAlign: 'center',
   },
-  evolutionDetailsContainer: {
-    flexDirection: 'column',
+  evolutionDetails: {
+    flex: 1,
     alignItems: 'center',
-    padding: 5,
-  },
-  evolutionInfo: {
-    backgroundColor: '#e8e8e8',
-    borderRadius: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    marginTop: 5,
+    paddingHorizontal: 10,
   },
   evolutionMethod: {
-    fontSize: 10,
+    fontSize: 12,
     color: '#666',
     textAlign: 'center',
-  },
-  loadingContainer: {
-    padding: 20,
-    alignItems: 'center',
-  },
-  loadingText: {
     marginTop: 5,
-    color: '#666',
-    fontSize: 14,
+    backgroundColor: '#EFEFEF',
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
   },
-  errorContainer: {
+  emptyContainer: {
     padding: 20,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  errorText: {
-    color: '#CC0000',
+  emptyText: {
     fontSize: 14,
-  },
+    color: '#666',
+    textAlign: 'center',
+  }
 });
 
 export default PokemonEvolution; 

@@ -366,10 +366,10 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   pokemonOfDayName: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 8,
+    marginBottom: 5,
   },
   pokemonOfDayTypes: {
     flexDirection: 'row',
@@ -408,11 +408,6 @@ const styles = StyleSheet.create({
   pokemonOfDayImage: {
     width: 120,
     height: 120,
-  },
-  pokemonOfDaySubtitle: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 8,
   },
   errorText: {
     fontSize: 16,
