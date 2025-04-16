@@ -1,6 +1,17 @@
 import React from 'react';
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { 
+  StyleSheet, 
+  View, 
+  Text, 
+  ScrollView, 
+  TouchableOpacity, 
+  Image,
+  ImageBackground,
+  Dimensions
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+
+const { width } = Dimensions.get('window');
 
 // Dados para os artigos do guia
 const guideArticles = [
@@ -61,46 +72,51 @@ const GuideScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Guia para Iniciantes</Text>
-        <Text style={styles.subtitle}>
-          Comece sua jornada no mundo Pokémon com este guia completo para novos treinadores.
-        </Text>
-      </View>
+      <ImageBackground 
+        source={{ uri: 'https://assets.pokemon.com/assets/cms2/img/pokedex/full/143.png' }}
+        style={styles.headerBg}
+        blurRadius={8}
+      >
+        <View style={styles.header}>
+          <Text style={styles.title}>Guia para Iniciantes</Text>
+          <Text style={styles.subtitle}>
+            Comece sua jornada no mundo Pokémon com este guia completo para novos treinadores.
+          </Text>
+        </View>
+      </ImageBackground>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        <Text style={styles.sectionTitle}>Tópicos Essenciais</Text>
+      <View style={styles.contentContainer}>
+        <View style={styles.sectionHeaderContainer}>
+          <Ionicons name="book-outline" size={24} color="#333" />
+          <Text style={styles.sectionTitle}>Tópicos Essenciais</Text>
+        </View>
         
-        {guideArticles.map((article) => (
-          <TouchableOpacity
-            key={article.id}
-            style={styles.articleCard}
-            onPress={() => navigateToArticle(article.id, article.title)}
-          >
-            <View style={styles.articleContent}>
-              <View style={[styles.iconContainer, { backgroundColor: article.color }]}>
-                <Ionicons name={article.icon} size={28} color="white" />
-              </View>
-              <View style={styles.articleTextContainer}>
-                <Text style={styles.articleTitle}>{article.title}</Text>
-                <Text style={styles.articleDescription}>{article.description}</Text>
-                <Text style={styles.readMore}>Ler mais</Text>
-              </View>
-            </View>
-            
-            {article.image && (
-              <Image
-                source={{ uri: article.image }}
-                style={styles.articleImage}
-                resizeMode="contain"
-              />
-            )}
-          </TouchableOpacity>
-        ))}
-        
-        {/* Espaço adicional no final da tela */}
-        <View style={styles.bottomSpacing} />
-      </ScrollView>
+        <ScrollView showsVerticalScrollIndicator={false}>
+          <View style={styles.articlesGrid}>
+            {guideArticles.map((article) => (
+              <TouchableOpacity
+                key={article.id}
+                style={styles.articleCard}
+                onPress={() => navigateToArticle(article.id, article.title)}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.articleIconContainer, { backgroundColor: article.color }]}>
+                  <Ionicons name={article.icon} size={28} color="white" />
+                </View>
+                <View style={styles.articleTextContainer}>
+                  <Text style={styles.articleTitle} numberOfLines={1}>{article.title}</Text>
+                  <Text style={styles.articleDescription} numberOfLines={2}>{article.description}</Text>
+                </View>
+                <Image
+                  source={{ uri: article.image }}
+                  style={styles.articleImage}
+                  resizeMode="contain"
+                />
+              </TouchableOpacity>
+            ))}
+          </View>
+        </ScrollView>
+      </View>
     </View>
   );
 };
@@ -110,8 +126,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F5F5F5',
   },
+  headerBg: {
+    width: '100%',
+  },
   header: {
-    backgroundColor: '#E63F34',
+    backgroundColor: 'rgba(230, 63, 52, 0.90)',
     paddingTop: 60,
     paddingBottom: 25,
     paddingHorizontal: 20,
@@ -127,65 +146,64 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.9)',
     lineHeight: 22,
   },
-  scrollView: {
+  contentContainer: {
     flex: 1,
     padding: 16,
+  },
+  sectionHeaderContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingVertical: 8,
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 16,
+    marginLeft: 10,
     color: '#333',
+  },
+  articlesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
   },
   articleCard: {
     backgroundColor: 'white',
-    borderRadius: 12,
+    borderRadius: 16,
+    width: (width - 40) / 2,
     marginBottom: 16,
-    padding: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
+    overflow: 'hidden',
   },
-  articleContent: {
-    flexDirection: 'row',
-  },
-  iconContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+  articleIconContainer: {
+    width: '100%',
+    height: 60,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
   },
   articleTextContainer: {
-    flex: 1,
+    padding: 12,
   },
   articleTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#333',
     marginBottom: 4,
   },
   articleDescription: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#666',
-    lineHeight: 20,
-    marginBottom: 8,
-  },
-  readMore: {
-    fontSize: 14,
-    color: '#E63F34',
-    fontWeight: 'bold',
+    lineHeight: 16,
+    height: 32,
   },
   articleImage: {
     width: '100%',
-    height: 120,
-    marginTop: 12,
-  },
-  bottomSpacing: {
-    height: 20,
+    height: 80,
+    backgroundColor: '#f9f9f9',
   },
 });
 

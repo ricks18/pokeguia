@@ -6,12 +6,17 @@ import {
   ScrollView, 
   TouchableOpacity, 
   Image, 
-  ActivityIndicator 
+  ActivityIndicator,
+  Dimensions,
+  ImageBackground
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { usePokemonContext } from '../context/PokemonContext';
 import { getPokemonDetails } from '../services/pokeApi';
 import { capitalize, formatPokemonId } from '../utils/helpers';
+import { Ionicons } from '@expo/vector-icons';
+
+const { width } = Dimensions.get('window');
 
 // Dados para os cards de introdução ao mundo Pokémon
 const guideCards = [
@@ -21,6 +26,7 @@ const guideCards = [
     description: 'Aprenda o básico sobre estas criaturas incríveis.',
     icon: 'help-circle-outline',
     color: '#4CAF50',
+    bgImage: 'https://assets.pokemon.com/assets/cms2/img/pokedex/full/001.png',
   },
   {
     id: 'types',
@@ -28,6 +34,7 @@ const guideCards = [
     description: 'Conheça os diferentes tipos e suas características.',
     icon: 'format-list-bulleted',
     color: '#2196F3',
+    bgImage: 'https://assets.pokemon.com/assets/cms2/img/pokedex/full/006.png',
   },
   {
     id: 'evolution',
@@ -35,6 +42,7 @@ const guideCards = [
     description: 'Descubra como os Pokémon evoluem e se transformam.',
     icon: 'arrow-up-bold',
     color: '#9C27B0',
+    bgImage: 'https://assets.pokemon.com/assets/cms2/img/pokedex/full/133.png',
   },
   {
     id: 'regions',
@@ -42,6 +50,7 @@ const guideCards = [
     description: 'Explore os diferentes mundos onde vivem os Pokémon.',
     icon: 'map-marker',
     color: '#FF9800',
+    bgImage: 'https://assets.pokemon.com/assets/cms2/img/pokedex/full/384.png',
   },
 ];
 
@@ -91,18 +100,27 @@ const HomeScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar style="auto" />
+      <StatusBar style="light" />
       
       {/* Cabeçalho */}
-      <View style={styles.header}>
-        <Text style={styles.title}>Guia Pokémon</Text>
-        <Text style={styles.subtitle}>Para Iniciantes</Text>
-      </View>
+      <ImageBackground 
+        source={{ uri: 'https://assets.pokemon.com/assets/cms2/img/pokedex/full/025.png' }}
+        style={styles.headerBg}
+        blurRadius={8}
+      >
+        <View style={styles.header}>
+          <Text style={styles.title}>Guia Pokémon</Text>
+          <Text style={styles.subtitle}>Explore o mundo dos Pokémon</Text>
+        </View>
+      </ImageBackground>
       
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Seção de Boas-vindas */}
         <View style={styles.welcomeSection}>
-          <Text style={styles.welcomeTitle}>Bem-vindo ao Mundo Pokémon!</Text>
+          <View style={styles.welcomeHeader}>
+            <Ionicons name="information-circle" size={22} color="#E63F34" />
+            <Text style={styles.welcomeTitle}>Bem-vindo ao Mundo Pokémon!</Text>
+          </View>
           <Text style={styles.welcomeText}>
             Este guia vai ajudar você a conhecer o incrível universo dos Pokémon, 
             mesmo se você nunca teve contato com eles antes.
@@ -110,22 +128,43 @@ const HomeScreen = ({ navigation }) => {
         </View>
         
         {/* Cards do Guia */}
-        <Text style={styles.sectionTitle}>Comece a Aprender</Text>
-        <View style={styles.guideCardsContainer}>
+        <View style={styles.sectionHeader}>
+          <Ionicons name="book-outline" size={22} color="#333" />
+          <Text style={styles.sectionTitle}>Comece a Aprender</Text>
+        </View>
+        
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.guideCardsScrollContainer}
+        >
           {guideCards.map((card) => (
             <TouchableOpacity 
               key={card.id} 
-              style={[styles.guideCard, { backgroundColor: card.color }]}
+              style={styles.guideCard}
               onPress={() => navigateToGuide(card.id)}
             >
-              <Text style={styles.guideCardTitle}>{card.title}</Text>
-              <Text style={styles.guideCardDescription}>{card.description}</Text>
+              <ImageBackground 
+                source={{ uri: card.bgImage }}
+                style={styles.guideCardBg}
+                imageStyle={styles.guideCardBgImage}
+              >
+                <View style={[styles.guideCardContent, { backgroundColor: `${card.color}CC` }]}>
+                  <Ionicons name={card.icon} size={24} color="white" style={styles.guideCardIcon} />
+                  <Text style={styles.guideCardTitle}>{card.title}</Text>
+                  <Text style={styles.guideCardDescription}>{card.description}</Text>
+                </View>
+              </ImageBackground>
             </TouchableOpacity>
           ))}
-        </View>
+        </ScrollView>
         
         {/* Pokémon do Dia */}
-        <Text style={styles.sectionTitle}>Pokémon do Dia</Text>
+        <View style={styles.sectionHeader}>
+          <Ionicons name="star-outline" size={22} color="#333" />
+          <Text style={styles.sectionTitle}>Pokémon do Dia</Text>
+        </View>
+        
         <View style={styles.pokemonOfDayContainer}>
           {loading ? (
             <ActivityIndicator size="large" color="#E63F34" />
@@ -133,6 +172,7 @@ const HomeScreen = ({ navigation }) => {
             <TouchableOpacity 
               style={styles.pokemonOfDayCard}
               onPress={() => navigateToPokemonDetail(pokemonOfDay.id)}
+              activeOpacity={0.7}
             >
               <View style={styles.pokemonOfDayInfo}>
                 <Text style={styles.pokemonOfDayId}>
@@ -141,9 +181,21 @@ const HomeScreen = ({ navigation }) => {
                 <Text style={styles.pokemonOfDayName}>
                   {capitalize(pokemonOfDay.nome)}
                 </Text>
-                <Text style={styles.pokemonOfDaySubtitle}>
-                  Clique para conhecer mais!
-                </Text>
+                
+                <View style={styles.pokemonOfDayTypes}>
+                  {pokemonOfDay.tipos && pokemonOfDay.tipos.map((tipo, index) => (
+                    <View key={index} style={styles.typeChip}>
+                      <Text style={styles.typeChipText}>{capitalize(tipo)}</Text>
+                    </View>
+                  ))}
+                </View>
+                
+                <TouchableOpacity 
+                  style={styles.pokemonOfDayButton}
+                  onPress={() => navigateToPokemonDetail(pokemonOfDay.id)}
+                >
+                  <Text style={styles.pokemonOfDayButtonText}>Ver Detalhes</Text>
+                </TouchableOpacity>
               </View>
               
               <View style={styles.pokemonOfDayImageContainer}>
@@ -168,6 +220,7 @@ const HomeScreen = ({ navigation }) => {
           style={styles.exploreButton}
           onPress={navigateToPokedex}
         >
+          <Ionicons name="search" size={18} color="white" style={{marginRight: 8}} />
           <Text style={styles.exploreButtonText}>Explorar a Pokédex</Text>
         </TouchableOpacity>
         
@@ -183,13 +236,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F5F5F5',
   },
+  headerBg: {
+    width: '100%',
+  },
   header: {
-    backgroundColor: '#E63F34',
+    backgroundColor: 'rgba(230, 63, 52, 0.90)',
     paddingTop: 50,
     paddingBottom: 25,
     paddingHorizontal: 20,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
   },
   title: {
     fontSize: 28,
@@ -198,7 +252,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: 'rgba(255, 255, 255, 0.9)',
   },
   scrollView: {
     flex: 1,
@@ -206,7 +260,7 @@ const styles = StyleSheet.create({
   },
   welcomeSection: {
     backgroundColor: 'white',
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
     marginTop: 16,
     marginBottom: 24,
@@ -216,10 +270,15 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  welcomeTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
+  welcomeHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 8,
+  },
+  welcomeTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginLeft: 8,
     color: '#333',
   },
   welcomeText: {
@@ -227,58 +286,75 @@ const styles = StyleSheet.create({
     color: '#666',
     lineHeight: 22,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    marginTop: 8,
+  },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 12,
-    marginTop: 8,
+    marginLeft: 8,
     color: '#333',
   },
-  guideCardsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    marginBottom: 24,
+  guideCardsScrollContainer: {
+    paddingRight: 16,
+    paddingBottom: 8,
   },
   guideCard: {
-    width: '48%',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 16,
+    width: width * 0.75,
+    height: 180,
+    marginRight: 16,
+    borderRadius: 16,
+    overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 6,
   },
-  guideCardTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: 'white',
+  guideCardBg: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'flex-end',
+  },
+  guideCardBgImage: {
+    opacity: 0.7,
+  },
+  guideCardContent: {
+    padding: 16,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+  guideCardIcon: {
     marginBottom: 8,
   },
+  guideCardTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'white',
+    marginBottom: 4,
+  },
   guideCardDescription: {
-    fontSize: 12,
+    fontSize: 14,
     color: 'rgba(255, 255, 255, 0.9)',
-    lineHeight: 18,
   },
   pokemonOfDayContainer: {
     marginBottom: 24,
-    minHeight: 150,
-    justifyContent: 'center',
     alignItems: 'center',
   },
   pokemonOfDayCard: {
-    flexDirection: 'row',
     backgroundColor: 'white',
     borderRadius: 16,
     padding: 16,
-    width: '100%',
+    flexDirection: 'row',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
+    width: '100%',
   },
   pokemonOfDayInfo: {
     flex: 1,
@@ -286,18 +362,42 @@ const styles = StyleSheet.create({
   },
   pokemonOfDayId: {
     fontSize: 14,
-    color: '#666',
+    color: '#777',
     marginBottom: 4,
   },
   pokemonOfDayName: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 8,
     color: '#333',
+    marginBottom: 8,
   },
-  pokemonOfDaySubtitle: {
+  pokemonOfDayTypes: {
+    flexDirection: 'row',
+    marginBottom: 16,
+  },
+  typeChip: {
+    backgroundColor: '#E63F34',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 20,
+    marginRight: 8,
+  },
+  typeChipText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  pokemonOfDayButton: {
+    backgroundColor: '#E63F34',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    alignSelf: 'flex-start',
+  },
+  pokemonOfDayButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
     fontSize: 14,
-    color: '#E63F34',
   },
   pokemonOfDayImageContainer: {
     width: 120,
@@ -306,29 +406,40 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   pokemonOfDayImage: {
-    width: 100,
-    height: 100,
+    width: 120,
+    height: 120,
+  },
+  pokemonOfDaySubtitle: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 8,
   },
   errorText: {
-    color: '#E63F34',
     fontSize: 16,
+    color: '#E63F34',
     textAlign: 'center',
+    marginTop: 16,
   },
   exploreButton: {
     backgroundColor: '#E63F34',
     paddingVertical: 14,
-    paddingHorizontal: 20,
     borderRadius: 30,
     alignItems: 'center',
-    marginBottom: 16,
+    justifyContent: 'center',
+    flexDirection: 'row',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 5,
   },
   exploreButtonText: {
     color: 'white',
-    fontSize: 16,
     fontWeight: 'bold',
+    fontSize: 16,
   },
   bottomSpacing: {
-    height: 20,
+    height: 30,
   },
 });
 

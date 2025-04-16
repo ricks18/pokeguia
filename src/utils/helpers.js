@@ -47,39 +47,6 @@ export const formatHeight = (height) => {
   return (height / 10).toFixed(1) + ' m';
 };
 
-// Extrair a cadeia evolutiva em um formato mais fácil de usar
-export const processEvolutionChain = (evolutionChain) => {
-  const evolutions = [];
-  
-  // Função recursiva para percorrer a cadeia evolutiva
-  const extractEvolutions = (chain, level = 1) => {
-    const pokemon = {
-      name: chain.species.name,
-      url: chain.species.url,
-      level,
-    };
-    
-    // Adicionar detalhes sobre como evoluir, se disponível
-    if (chain.evolution_details && chain.evolution_details.length > 0) {
-      const detail = chain.evolution_details[0];
-      pokemon.evolutionDetails = detail;
-    }
-    
-    evolutions.push(pokemon);
-    
-    // Processar próximas evoluções
-    if (chain.evolves_to && chain.evolves_to.length > 0) {
-      chain.evolves_to.forEach(nextEvolution => {
-        extractEvolutions(nextEvolution, level + 1);
-      });
-    }
-  };
-  
-  extractEvolutions(evolutionChain.chain);
-  
-  return evolutions;
-};
-
 // Agrupar Pokémon por tipo
 export const groupPokemonByType = (pokemonList, types) => {
   const grouped = {};
@@ -103,6 +70,11 @@ export const groupPokemonByType = (pokemonList, types) => {
 export const getPokemonDescription = async (pokemonId) => {
   try {
     const response = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${pokemonId}`);
+    
+    if (!response.ok) {
+      throw new Error(`Erro ao buscar descrição: ${response.status}`);
+    }
+    
     const data = await response.json();
     
     // Tenta encontrar uma descrição em português
@@ -115,10 +87,13 @@ export const getPokemonDescription = async (pokemonId) => {
       const englishDescriptions = data.flavor_text_entries.filter(
         entry => entry.language.name === 'en'
       );
-      return englishDescriptions.length > 0 ? englishDescriptions[0].flavor_text : 'Descrição não disponível';
+      return englishDescriptions.length > 0 
+        ? englishDescriptions[0].flavor_text 
+        : 'Descrição não disponível';
     }
     
-    return descriptions[0].flavor_text;
+    // Limpar caracteres de nova linha e tabulação que podem estar presentes na API
+    return descriptions[0].flavor_text.replace(/\f/g, ' ').replace(/\n/g, ' ');
   } catch (error) {
     console.error('Erro ao buscar descrição do Pokémon:', error);
     return 'Descrição não disponível';

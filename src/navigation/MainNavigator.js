@@ -12,7 +12,7 @@ import {
 } from './stacks';
 
 import { ROUTES } from './types';
-import { NAVIGATION_COLORS, COMMON_SCREEN_OPTIONS } from './navigatorConfig';
+import { TAB_SCREEN_OPTIONS } from './navigatorConfig';
 
 const Tab = createBottomTabNavigator();
 
@@ -22,20 +22,7 @@ const Tab = createBottomTabNavigator();
 const MainNavigator = () => {
   return (
     <Tab.Navigator
-      screenOptions={{
-        tabBarActiveTintColor: NAVIGATION_COLORS.primary,
-        tabBarInactiveTintColor: NAVIGATION_COLORS.inactive,
-        tabBarLabelStyle: {
-          fontSize: 12,
-          marginBottom: 4,
-        },
-        tabBarStyle: {
-          backgroundColor: NAVIGATION_COLORS.background,
-          borderTopColor: NAVIGATION_COLORS.border,
-          paddingTop: 5,
-        },
-        ...COMMON_SCREEN_OPTIONS,
-      }}
+      screenOptions={TAB_SCREEN_OPTIONS}
     >
       <Tab.Screen 
         name={ROUTES.HOME} 

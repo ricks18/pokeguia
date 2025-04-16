@@ -6,12 +6,15 @@ import TypesScreen from '../../screens/TypesScreen';
 import TypeDetailScreen from '../../screens/TypeDetailScreen';
 import PokemonDetailScreen from '../../screens/PokemonDetailScreen';
 import { SCREENS } from '../types';
+import { STACK_SCREEN_OPTIONS } from '../navigatorConfig';
 
 const Stack = createNativeStackNavigator();
 
 const TypesStack = () => {
   return (
-    <Stack.Navigator>
+    <Stack.Navigator
+      screenOptions={STACK_SCREEN_OPTIONS}
+    >
       <Stack.Screen 
         name={SCREENS.TYPES_LIST} 
         component={TypesScreen} 
@@ -22,7 +25,7 @@ const TypesStack = () => {
         component={TypeDetailScreen}
         options={({ route }) => ({ 
           title: route.params?.name || 'Detalhes do Tipo',
-          headerBackTitle: 'Voltar' 
+          headerShown: true
         })}
       />
       <Stack.Screen 
@@ -30,7 +33,7 @@ const TypesStack = () => {
         component={PokemonDetailScreen}
         options={({ route }) => ({ 
           title: route.params?.name || 'Detalhes do Pokémon',
-          headerBackTitle: 'Voltar' 
+          headerShown: true
         })}
       />
     </Stack.Navigator>

@@ -11,7 +11,7 @@ import {
 } from './stacks';
 
 import { ROUTES } from './types';
-import { NAVIGATION_COLORS, COMMON_SCREEN_OPTIONS } from './navigatorConfig';
+import { DRAWER_SCREEN_OPTIONS } from './navigatorConfig';
 
 const Drawer = createDrawerNavigator();
 
@@ -22,15 +22,7 @@ const Drawer = createDrawerNavigator();
 const DrawerNavigator = () => {
   return (
     <Drawer.Navigator
-      screenOptions={{
-        drawerActiveTintColor: NAVIGATION_COLORS.primary,
-        drawerInactiveTintColor: NAVIGATION_COLORS.inactive,
-        drawerLabelStyle: {
-          fontSize: 16,
-          marginLeft: -10,
-        },
-        ...COMMON_SCREEN_OPTIONS,
-      }}
+      screenOptions={DRAWER_SCREEN_OPTIONS}
     >
       <Drawer.Screen 
         name={ROUTES.HOME} 

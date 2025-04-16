@@ -11,6 +11,7 @@ import {
 import { usePokemonContext } from '../context/PokemonContext';
 import { getPokemonDetails, getEvolutionChain } from '../services/pokeApi';
 import { getPokemonDescription } from '../utils/helpers';
+import { processEvolutionChain } from '../utils/evolutionUtils';
 import TypeBadge from '../components/TypeBadge';
 import PokemonStat from '../components/PokemonStat';
 import { capitalize, formatPokemonId, formatWeight, formatHeight } from '../utils/helpers';
@@ -23,7 +24,7 @@ const PokemonDetailScreen = ({ route, navigation }) => {
   const [evolutionChain, setEvolutionChain] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { isFavorite, toggleFavorite } = usePokemonContext();
+  const { isFavorite, toggleFavorite, removeFavorite, addFavorite } = usePokemonContext();
 
   // Carregar dados do Pokémon quando a tela for montada
   useEffect(() => {
@@ -53,49 +54,28 @@ const PokemonDetailScreen = ({ route, navigation }) => {
       // Obter a cadeia evolutiva
       try {
         const evolutionData = await getEvolutionChain(id);
-        processEvolutionChain(evolutionData.chain);
+        const processedEvolution = processEvolutionChain(evolutionData);
+        setEvolutionChain(processedEvolution);
       } catch (evolError) {
-        console.error('Erro ao carregar evoluções:', evolError);
+        // Silenciosamente falhar na cadeia evolutiva
       }
       
     } catch (err) {
-      console.error('Erro ao carregar detalhes do Pokémon:', err);
       setError('Não foi possível carregar os detalhes deste Pokémon.');
     } finally {
       setLoading(false);
     }
   };
 
-  // Processar a cadeia evolutiva
-  const processEvolutionChain = (chain) => {
-    const evolutions = [];
-    
-    // Função recursiva para percorrer a cadeia evolutiva
-    const extractEvolutions = (currentChain) => {
-      const pokemonUrl = currentChain.species.url;
-      const urlParts = pokemonUrl.split('/');
-      const pokemonId = parseInt(urlParts[urlParts.length - 2]);
-      
-      evolutions.push({
-        id: pokemonId,
-        name: currentChain.species.name,
-      });
-      
-      // Se houver próximas evoluções, processá-las
-      if (currentChain.evolves_to && currentChain.evolves_to.length > 0) {
-        currentChain.evolves_to.forEach(nextEvolution => {
-          extractEvolutions(nextEvolution);
-        });
-      }
-    };
-    
-    extractEvolutions(chain);
-    setEvolutionChain(evolutions);
-  };
-
   // Alternar estado de favorito
   const handleToggleFavorite = () => {
-    toggleFavorite(id);
+    if (pokemon) {
+      if (isFavorite(pokemon.id)) {
+        removeFavorite(pokemon.id);
+      } else {
+        addFavorite(pokemon);
+      }
+    }
   };
 
   // Navegar para o detalhe de outro Pokémon da cadeia evolutiva
@@ -140,9 +120,9 @@ const PokemonDetailScreen = ({ route, navigation }) => {
               onPress={handleToggleFavorite}
             >
               <Ionicons 
-                name={isFavorite(id) ? "heart" : "heart-outline"} 
+                name={isFavorite(pokemon.id) ? "heart" : "heart-outline"} 
                 size={28} 
-                color={isFavorite(id) ? "#E63F34" : "#FFF"}
+                color={isFavorite(pokemon.id) ? "#E63F34" : "#FFF"}
               />
             </TouchableOpacity>
           </View>

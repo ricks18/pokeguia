@@ -6,12 +6,15 @@ import GuideScreen from '../../screens/GuideScreen';
 import GuideDetailScreen from '../../screens/GuideDetailScreen';
 import PokemonDetailScreen from '../../screens/PokemonDetailScreen';
 import { SCREENS } from '../types';
+import { STACK_SCREEN_OPTIONS } from '../navigatorConfig';
 
 const Stack = createNativeStackNavigator();
 
 const GuideStack = () => {
   return (
-    <Stack.Navigator>
+    <Stack.Navigator
+      screenOptions={STACK_SCREEN_OPTIONS}
+    >
       <Stack.Screen 
         name={SCREENS.GUIDE_LIST} 
         component={GuideScreen} 
@@ -22,7 +25,7 @@ const GuideStack = () => {
         component={GuideDetailScreen}
         options={({ route }) => ({ 
           title: route.params?.title || 'Guia Pokémon',
-          headerBackTitle: 'Voltar' 
+          headerShown: true
         })}
       />
       <Stack.Screen 
@@ -30,7 +33,7 @@ const GuideStack = () => {
         component={PokemonDetailScreen}
         options={({ route }) => ({ 
           title: route.params?.name || 'Detalhes do Pokémon',
-          headerBackTitle: 'Voltar' 
+          headerShown: true
         })}
       />
     </Stack.Navigator>

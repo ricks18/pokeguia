@@ -5,12 +5,15 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from '../../screens/HomeScreen';
 import PokemonDetailScreen from '../../screens/PokemonDetailScreen';
 import { SCREENS } from '../types';
+import { STACK_SCREEN_OPTIONS } from '../navigatorConfig';
 
 const Stack = createNativeStackNavigator();
 
 const HomeStack = () => {
   return (
-    <Stack.Navigator>
+    <Stack.Navigator
+      screenOptions={STACK_SCREEN_OPTIONS}
+    >
       <Stack.Screen 
         name={SCREENS.HOME_SCREEN} 
         component={HomeScreen} 
@@ -21,7 +24,7 @@ const HomeStack = () => {
         component={PokemonDetailScreen}
         options={({ route }) => ({ 
           title: route.params?.name || 'Detalhes do Pokémon',
-          headerBackTitle: 'Voltar' 
+          headerShown: true
         })}
       />
     </Stack.Navigator>

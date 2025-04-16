@@ -6,12 +6,15 @@ import PokemonListScreen from '../../screens/PokemonListScreen';
 import PokemonDetailScreen from '../../screens/PokemonDetailScreen';
 import SearchScreen from '../../screens/SearchScreen';
 import { SCREENS } from '../types';
+import { STACK_SCREEN_OPTIONS } from '../navigatorConfig';
 
 const Stack = createNativeStackNavigator();
 
 const PokedexStack = () => {
   return (
-    <Stack.Navigator>
+    <Stack.Navigator
+      screenOptions={STACK_SCREEN_OPTIONS}
+    >
       <Stack.Screen 
         name={SCREENS.POKEMON_LIST} 
         component={PokemonListScreen} 
@@ -22,13 +25,16 @@ const PokedexStack = () => {
         component={PokemonDetailScreen}
         options={({ route }) => ({ 
           title: route.params?.name || 'Detalhes do Pokémon',
-          headerBackTitle: 'Voltar' 
+          headerShown: true
         })}
       />
       <Stack.Screen 
         name={SCREENS.SEARCH} 
         component={SearchScreen} 
-        options={{ title: 'Buscar Pokémon' }}
+        options={{ 
+          title: 'Buscar Pokémon',
+          headerShown: true
+        }}
       />
     </Stack.Navigator>
   );
